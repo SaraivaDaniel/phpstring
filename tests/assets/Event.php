@@ -1,10 +1,10 @@
 <?php
 
-namespace JansenFelipe\PHPString\Test;
+namespace SaraivaDaniel\PHPString\Test;
 
-use JansenFelipe\PHPString\Annotations\Text;
-use JansenFelipe\PHPString\Annotations\Date;
-use JansenFelipe\PHPString\Annotations\Numeric;
+use SaraivaDaniel\PHPString\Annotations\Text;
+use SaraivaDaniel\PHPString\Annotations\Date;
+use SaraivaDaniel\PHPString\Annotations\Numeric;
 
 class Event
 {

@@ -1,18 +1,18 @@
 # PHP String
-[![Travis](https://travis-ci.org/jansenfelipe/phpstring.svg?branch=1.0)](https://travis-ci.org/jansenfelipe/phpstring)
-[![Latest Stable Version](https://poser.pugx.org/jansenfelipe/phpstring/v/stable.svg)](https://packagist.org/packages/jansenfelipe/phpstring) 
-[![Total Downloads](https://poser.pugx.org/jansenfelipe/phpstring/downloads.svg)](https://packagist.org/packages/jansenfelipe/phpstring) 
-[![Latest Unstable Version](https://poser.pugx.org/jansenfelipe/phpstring/v/unstable.svg)](https://packagist.org/packages/jansenfelipe/phpstring)
-[![MIT license](https://poser.pugx.org/jansenfelipe/phpstring/license.svg)](http://opensource.org/licenses/MIT)
+[![Travis](https://travis-ci.org/danielslcosta/phpstring.svg?branch=1.0)](https://travis-ci.org/danielslcosta/phpstring)
+[![Latest Stable Version](https://poser.pugx.org/saraivadaniel/phpstring/v/stable)](https://packagist.org/packages/saraivadaniel/phpstring) 
+[![Total Downloads](https://poser.pugx.org/saraivadaniel/phpstring/downloads)](https://packagist.org/packages/saraivadaniel/phpstring) 
+[![Latest Unstable Version](https://poser.pugx.org/saraivadaniel/phpstring/v/unstable)](https://packagist.org/packages/saraivadaniel/phpstring)
+[![MIT license](https://poser.pugx.org/saraivadaniel/phpstring/license)](http://opensource.org/licenses/MIT)
 
-Create objects filling attribute classes with string data
+Create objects filling attribute classes with string data (fork of jansenfelipe/phpstring)
 
 ## How to use
 
 Add library
 
 ```sh
-$ composer require jansenfelipe/phpstring
+$ composer require saraivadaniel/phpstring
 ```
 
 Add autoload.php in your file:

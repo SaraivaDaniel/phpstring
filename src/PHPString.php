@@ -1,15 +1,15 @@
 <?php
 
-namespace JansenFelipe\PHPString;
+namespace SaraivaDaniel\PHPString;
 
 use Carbon\Carbon;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Exception;
-use JansenFelipe\PHPString\Annotations\Date;
-use JansenFelipe\PHPString\Annotations\Layout;
-use JansenFelipe\PHPString\Annotations\Numeric;
-use JansenFelipe\PHPString\Annotations\Text;
+use SaraivaDaniel\PHPString\Annotations\Date;
+use SaraivaDaniel\PHPString\Annotations\Layout;
+use SaraivaDaniel\PHPString\Annotations\Numeric;
+use SaraivaDaniel\PHPString\Annotations\Text;
 use ReflectionClass;
 
 class PHPString
@@ -57,6 +57,7 @@ class PHPString
 
         foreach($this->reflectionClass->getProperties() as $reflectionProperty)
         {
+            /* @var $reflectionProperty \ReflectionProperty */
             foreach($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation)
             {
                 if ($propertyAnnotation instanceof Layout)
@@ -67,7 +68,28 @@ class PHPString
                      * Date
                      */
                     if ($propertyAnnotation instanceof Date && strlen(trim($value)) > 0)
-                        $reflectionProperty->setValue($object, Carbon::createFromFormat($propertyAnnotation->format, $value));
+                    {
+                        try
+                        {
+                            if (trim($value, '0') == '')
+                            {
+                                throw new \Exception("Data zerada");
+                            }
+
+                            $date = Carbon::createFromFormat($propertyAnnotation->format, $value);
+
+                            if ($date->format($propertyAnnotation->format) !== $value)
+                            {
+                                throw new \Exception("Erro na interpretação da data");
+                            }
+                        } catch (\Exception $ex)
+                        {
+                            // catches both exception that may be thrown above, as well Carbon own exceptions
+                            $date = null;
+                        }
+
+                        $reflectionProperty->setValue($object, $date);
+                    }
 
                     /*
                      * Text
@@ -80,18 +102,50 @@ class PHPString
                      */
                     if ($propertyAnnotation instanceof Numeric)
                     {
-                        if(!is_numeric($value))
-                            throw new Exception("[$value] is not numeric");
-
-                        $value = ltrim($value, '0');
-
-                        if($propertyAnnotation->decimals > 0)
+                        // numeric type may be a number (as in int/float) but may also be a string, in which case 
+                        // leading zeros have to be preserved
+                        // we expect only digits [0-9], spaces may be tolerated
+                        do
                         {
-                            if($propertyAnnotation->decimals >= strlen($value))
-                                throw new Exception("Number of decimal places greater than the value [$value]");
+                            if (trim($value) == '')
+                            {
+                                $value = NULL;
+                                break;
+                            }
 
-                            $value = floatval(substr($value, 0, strlen($value)-$propertyAnnotation->decimals) .'.'. substr($value, $propertyAnnotation->decimals*-1));
-                        }
+                            // we expect only digits [0-9] and decimal separator
+                            if ($propertyAnnotation->decimal_separator == '')
+                            {
+                                $pattern = '/[^0-9]/';
+                            } elseif ($propertyAnnotation->decimal_separator == '.')
+                            {
+                                $pattern = '/[^0-9\.]/';
+                            } elseif ($propertyAnnotation->decimal_separator == ',')
+                            {
+                                $pattern = '/[^0-9,]/';
+                            } else
+                            {
+                                throw new \Exception("Invalid decimal separator");
+                            }
+                            if (preg_match($pattern, $value) !== 0)
+                            {
+                                throw new Exception("[$value] is not numeric [{$this->class}::{$reflectionProperty->name}]");
+                            }
+
+                            // if annotation defines decimal separator, then we assume this value is a number, so we convert it to float
+                            if ($propertyAnnotation->decimals > 0)
+                            {
+                                $value = floatval($value);
+                                if ($propertyAnnotation->decimal_separator == "")
+                                {
+                                    $value /= (pow(10, $propertyAnnotation->decimals));
+                                }
+                                break;
+                            }
+
+                            // if we reach here, $value contains the original value, just trimmed
+                            // we can't trim for zeroes because they might be significant here (like in CNPJ/CPF)
+                        } while (0);
 
                         $reflectionProperty->setValue($object, $value);
                     }
@@ -159,6 +213,9 @@ class PHPString
                     {
                         if (!is_numeric($value))
                             throw new Exception("$value is not numeric");
+
+                        if (is_string($value))
+                            $value *= 1.0;
 
                         if($propertyAnnotation->decimals > 0)
                             $value = number_format($value, $propertyAnnotation->decimals, $propertyAnnotation->decimal_separator, '');

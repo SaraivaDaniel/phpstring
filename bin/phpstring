@@ -6,7 +6,7 @@ foreach (array(__DIR__ . '/../../../autoload.php', __DIR__ . '/../vendor/autoloa
         break;
     }
 }
-use JansenFelipe\PHPString\Commands\CreateClassCommand;
+use SaraivaDaniel\PHPString\Commands\CreateClassCommand;
 use Symfony\Component\Console\Application;
 $application = new Application();
 $application->add(new CreateClassCommand());

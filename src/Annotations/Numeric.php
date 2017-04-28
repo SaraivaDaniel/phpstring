@@ -1,6 +1,6 @@
 <?php
 
-namespace JansenFelipe\PHPString\Annotations;
+namespace SaraivaDaniel\PHPString\Annotations;
 
 /**
  * @Annotation
@@ -9,5 +9,5 @@ class Numeric extends Layout
 {
     public $decimals = 0;
 
-    public $decimal_separator = '.';
+    public $decimal_separator = '';
 }

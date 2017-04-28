@@ -1,6 +1,6 @@
 <?php
 
-namespace JansenFelipe\PHPString\Commands;
+namespace SaraivaDaniel\PHPString\Commands;
 
 
 use Symfony\Component\Console\Command\Command;
@@ -100,9 +100,9 @@ class CreateClassCommand extends Command
 
 namespace SerasaConsulta\Layouts;
 
-use JansenFelipe\PHPString\Annotations\Text;
-use JansenFelipe\PHPString\Annotations\Date;
-use JansenFelipe\PHPString\Annotations\Numeric;
+use SaraivaDaniel\PHPString\Annotations\Text;
+use SaraivaDaniel\PHPString\Annotations\Date;
+use SaraivaDaniel\PHPString\Annotations\Numeric;
 
 class $classname
 {

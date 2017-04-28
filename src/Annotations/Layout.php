@@ -1,6 +1,6 @@
 <?php
 
-namespace JansenFelipe\PHPString\Annotations;
+namespace SaraivaDaniel\PHPString\Annotations;
 
 
 abstract class Layout
