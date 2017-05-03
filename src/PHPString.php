@@ -176,6 +176,7 @@ class PHPString
 
         foreach($this->reflectionClass->getProperties() as $reflectionProperty)
         {
+            /* @var $reflectionProperty \ReflectionProperty */
             foreach($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation)
             {
                 if ($propertyAnnotation instanceof Layout)
@@ -194,17 +195,28 @@ class PHPString
                      */
                     if ($propertyAnnotation instanceof Date)
                     {
-                        if(!($value instanceof Carbon))
+                        if(!($value instanceof Carbon)) {
                             throw new Exception("$value is not an instance of Carbon");
+                        }
+                        
+                        $valuestr = $value->format($propertyAnnotation->format);
+                        
+                        // datas tem valores definidos, caso o valor formatado não coincida com o tamanho do campo há um erro na definição ou na data informada
+                        if (strlen($valuestr) !== $propertyAnnotation->size) {
+                            throw new \Exception("O valor '{$valuestr}' tem comprimento inválido para o campo {$reflectionProperty->getName()}");
+                        }
 
-                        $string .= $value->format($propertyAnnotation->format);
+                        $string .= $valuestr;
                     }
 
                     /*
                      * Text
                      */
-                    if ($propertyAnnotation instanceof Text)
+                    if ($propertyAnnotation instanceof Text) {
+                        // limita string ao tamanho do campo, caso seja maior, e caso seja menor, faz pad com espaços à direita
+                        $value = substr($value, 0, $propertyAnnotation->size);
                         $string .= str_pad($value, $propertyAnnotation->size, ' ', STR_PAD_RIGHT);
+                    }
 
                     /*
                      * Numeric
@@ -219,6 +231,11 @@ class PHPString
 
                         if($propertyAnnotation->decimals > 0)
                             $value = number_format($value, $propertyAnnotation->decimals, $propertyAnnotation->decimal_separator, '');
+                        
+                        // valores numericos não podem ser truncados
+                        if (strlen($value) > $propertyAnnotation->size) {
+                            throw new \Exception("O valor '{$value}' é muito longo para o campo {$reflectionProperty->getName()}");
+                        }
 
                         $string .= str_pad($value, $propertyAnnotation->size, '0', STR_PAD_LEFT);
                     }
