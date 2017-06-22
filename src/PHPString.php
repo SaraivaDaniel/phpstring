@@ -76,7 +76,7 @@ class PHPString
                                 throw new \Exception("Data zerada");
                             }
 
-                            $date = Carbon::createFromFormat($propertyAnnotation->format, $value);
+                            $date = Carbon::createFromFormat(trim($propertyAnnotation->format), trim($value));
 
                             if ($date->format($propertyAnnotation->format) !== $value)
                             {
