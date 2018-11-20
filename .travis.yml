@@ -10,8 +10,5 @@ php:
 
 before_script:
   - travis_retry composer self-update
-  - travis_retry composer install --dev
-
-script:
-  - mkdir -p build/logs
-  - vendor/bin/phpunit -c phpunit.xml.dist --verbose
+  - travis_retry composer install
+  
