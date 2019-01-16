@@ -94,8 +94,19 @@ class PHPString
                     /*
                      * Text
                      */
-                    if ($propertyAnnotation instanceof Text)
-                        $reflectionProperty->setValue($object, trim($value));
+                    if ($propertyAnnotation instanceof Text) {
+                        if (property_exists($propertyAnnotation, 'trim')) {
+                            $trim = $propertyAnnotation->trim === TRUE;
+                        } else {
+                            $trim = TRUE;
+                        }
+                        
+                        if ($trim) {
+                            $value = trim($value);
+                        }
+                        
+                        $reflectionProperty->setValue($object, $value);
+                    }
 
                     /*
                      * Numeric

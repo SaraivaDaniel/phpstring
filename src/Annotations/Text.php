@@ -7,5 +7,5 @@ namespace SaraivaDaniel\PHPString\Annotations;
  */
 class Text extends Layout
 {
-
+    public $trim = true;
 }
