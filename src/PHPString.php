@@ -118,7 +118,9 @@ class PHPString
                         // we expect only digits [0-9], spaces may be tolerated
                         do
                         {
-                            if (trim($value) == '')
+                            // spaces before or after the value are to be discarded, as we only want numeric chars
+                            $value = trim($value);
+                            if ($value == '')
                             {
                                 $value = NULL;
                                 break;
@@ -171,7 +173,7 @@ class PHPString
 
         return $object;
     }
-
+    
     /**
      * Convert object to string
      *
