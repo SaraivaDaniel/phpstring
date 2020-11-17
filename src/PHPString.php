@@ -129,18 +129,18 @@ class PHPString
                             // we expect only digits [0-9] and decimal separator
                             if ($propertyAnnotation->decimal_separator == '')
                             {
-                                $pattern = '/[^0-9]/';
+                                $pattern = '/[0-9]+/';
                             } elseif ($propertyAnnotation->decimal_separator == '.')
                             {
-                                $pattern = '/[^0-9\.]/';
+                                $pattern = '/[0-9]+\.[0-9]+/';
                             } elseif ($propertyAnnotation->decimal_separator == ',')
                             {
-                                $pattern = '/[^0-9,]/';
+                                $pattern = '/[0-9]+,[0-9]+/';
                             } else
                             {
                                 throw new \Exception("Invalid decimal separator");
                             }
-                            if (preg_match($pattern, $value) !== 0)
+                            if (preg_match($pattern, $value) === 0)
                             {
                                 throw new Exception("[$value] is not numeric [{$this->class}::{$reflectionProperty->name}]");
                             }
@@ -148,6 +148,11 @@ class PHPString
                             // if annotation defines decimal separator, then we assume this value is a number, so we convert it to float
                             if ($propertyAnnotation->decimals > 0)
                             {
+                                // replace comma with dot
+                                if ($propertyAnnotation->decimal_separator == ',') {
+                                    $value = str_replace(',', '.', $value);
+                                }
+
                                 $value = floatval($value);
                                 if ($propertyAnnotation->decimal_separator == "")
                                 {
@@ -162,8 +167,6 @@ class PHPString
 
                         $reflectionProperty->setValue($object, $value);
                     }
-
-
 
                     //Increment.
                     $i += $propertyAnnotation->size;

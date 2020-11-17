@@ -47,10 +47,11 @@ class PHPStringTest extends PHPUnit_Framework_TestCase
         
         /* @var $numeric Test\NumericAnnotation */
         
-        $numeric = $parser->toObject('000021210000123401200.11');
+        $numeric = $parser->toObject('000021210000123401200.1101200,22');
         $this->assertSame('00002121', $numeric->sku);
         $this->assertSame(12.34, $numeric->qty);
         $this->assertSame(1200.11, $numeric->price);
+        $this->assertSame(1200.22, $numeric->price_comma);
     }
     
     public function testNumericAnnotationToString() {
@@ -60,17 +61,20 @@ class PHPStringTest extends PHPUnit_Framework_TestCase
         $numeric->sku = '025';
         $numeric->qty = '100.02';
         $numeric->price = '123';
-        $this->assertEquals('000000250001000200123.00', $parser->toString($numeric));
+        $numeric->price_comma = '124';
+        $this->assertEquals('000000250001000200123.0000124,00', $parser->toString($numeric));
         
         $numeric->sku = 25;
         $numeric->qty = 100.02;
         $numeric->price = 123.45;
-        $this->assertEquals('000000250001000200123.45', $parser->toString($numeric));
+        $numeric->price_comma = 124.45;
+        $this->assertEquals('000000250001000200123.4500124,45', $parser->toString($numeric));
         
         $numeric->sku = 25;
         $numeric->qty = 100;
         $numeric->price = 123;
-        $this->assertEquals('000000250001000000123.00', $parser->toString($numeric));
+        $numeric->price_comma = 124;
+        $this->assertEquals('000000250001000000123.0000124,00', $parser->toString($numeric));
     }
 
     public function testToObject()
