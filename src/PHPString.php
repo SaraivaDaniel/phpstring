@@ -25,11 +25,18 @@ class PHPString
     private $reflectionClass;
 
     /**
+     * If true, will only copy the values as string without any modification to the destination object
+     * Applicable only to self::toObject()
+     * @var bool
+     */
+    private $textOnly;
+
+    /**
      * Constructor.
      */
     public function __construct($class)
     {
-        if(!class_exists($class))
+        if (!class_exists($class))
             throw new Exception('Class not exits');
 
         $this->class = $class;
@@ -41,6 +48,11 @@ class PHPString
         $this->annotationReader = new AnnotationReader();
 
         $this->reflectionClass = new ReflectionClass($this->class);
+    }
+
+    public function setTextOnly($value = true)
+    {
+        $this->textOnly = $value;
     }
 
     /**
@@ -55,107 +67,98 @@ class PHPString
 
         $i = 0;
 
-        foreach($this->reflectionClass->getProperties() as $reflectionProperty)
-        {
+        foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             /* @var $reflectionProperty \ReflectionProperty */
-            foreach($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation)
-            {
-                if ($propertyAnnotation instanceof Layout)
-                {
+            foreach ($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation) {
+                if ($propertyAnnotation instanceof Layout) {
                     $value = substr($string, $i, $propertyAnnotation->size);
 
-                    /*
-                     * Date
-                     */
-                    if ($propertyAnnotation instanceof Date && strlen(trim($value)) > 0)
-                    {
-                        try
-                        {
-                            if (trim($value, '0') == '')
-                            {
-                                throw new \Exception("Data zerada");
-                            }
-
-                            $date = Carbon::createFromFormat(trim($propertyAnnotation->format), trim($value));
-
-                            if ($date->format($propertyAnnotation->format) !== $value)
-                            {
-                                throw new \Exception("Erro na interpretação da data");
-                            }
-                        } catch (\Exception $ex)
-                        {
-                            // catches both exception that may be thrown above, as well Carbon own exceptions
-                            $date = null;
-                        }
-
-                        $reflectionProperty->setValue($object, $date);
-                    }
-
-                    /*
-                     * Text
-                     */
-                    if ($propertyAnnotation instanceof Text) {
+                    if ($this->textOnly) {
+                        $reflectionProperty->setValue($object, $value);
+                    } elseif ($propertyAnnotation instanceof Text) {
+                        /*
+                         * Text
+                         */
                         if (property_exists($propertyAnnotation, 'trim')) {
                             $trim = $propertyAnnotation->trim === TRUE;
                         } else {
                             $trim = TRUE;
                         }
-                        
+
                         if ($trim) {
                             $value = trim($value);
                         }
-                        
-                        $reflectionProperty->setValue($object, $value);
-                    }
 
-                    /*
-                     * Numeric
-                     */
-                    if ($propertyAnnotation instanceof Numeric)
-                    {
+                        $reflectionProperty->setValue($object, $value);
+                    } elseif ($propertyAnnotation instanceof Date && strlen(trim($value)) > 0) {
+                        /*
+                         * Date
+                         */
+                        try {
+                            if (trim($propertyAnnotation->format) == '') {
+                                throw new \Exception("Formato não especificado");
+                            }
+
+                            if (trim($value, '0') == '') {
+                                throw new \Exception("Data zerada");
+                            }
+
+                            $date = Carbon::createFromFormat(trim($propertyAnnotation->format), trim($value));
+
+                            if (strpos($propertyAnnotation->format, 'H') === false ||
+                                strpos($propertyAnnotation->format, 'i') === false ||
+                                strpos($propertyAnnotation->format, 's') === false
+                            ) {
+                                $date->startOfDay();
+                            }
+
+                            if ($date->format($propertyAnnotation->format) !== $value) {
+                                throw new \Exception("Erro na interpretação da data");
+                            }
+                        } catch (\Exception $ex) {
+                            // catches both exception that may be thrown above, as well Carbon own exceptions
+                            $date = null;
+                        }
+
+                        $reflectionProperty->setValue($object, $date);
+                    } elseif ($propertyAnnotation instanceof Numeric) {
+                        /*
+                         * Numeric
+                         */
                         // numeric type may be a number (as in int/float) but may also be a string, in which case 
                         // leading zeros have to be preserved
                         // we expect only digits [0-9], spaces may be tolerated
-                        do
-                        {
+                        do {
                             // spaces before or after the value are to be discarded, as we only want numeric chars
                             $value = trim($value);
-                            if ($value == '')
-                            {
+                            if ($value == '') {
                                 $value = NULL;
                                 break;
                             }
 
                             // we expect only digits [0-9] and decimal separator
-                            if ($propertyAnnotation->decimal_separator == '')
-                            {
+                            if ($propertyAnnotation->decimal_separator == '') {
                                 $pattern = '/[0-9]+/';
-                            } elseif ($propertyAnnotation->decimal_separator == '.')
-                            {
+                            } elseif ($propertyAnnotation->decimal_separator == '.') {
                                 $pattern = '/[0-9]+\.[0-9]+/';
-                            } elseif ($propertyAnnotation->decimal_separator == ',')
-                            {
+                            } elseif ($propertyAnnotation->decimal_separator == ',') {
                                 $pattern = '/[0-9]+,[0-9]+/';
-                            } else
-                            {
+                            } else {
                                 throw new \Exception("Invalid decimal separator");
                             }
-                            if (preg_match($pattern, $value) === 0)
-                            {
+                            if (preg_match($pattern, $value) === 0) {
                                 throw new Exception("[$value] is not numeric [{$this->class}::{$reflectionProperty->name}]");
                             }
 
                             // if annotation defines decimal separator, then we assume this value is a number, so we convert it to float
-                            if ($propertyAnnotation->decimals > 0)
-                            {
+                            if ($propertyAnnotation->decimals > 0 || $propertyAnnotation->ignore_left_zeroes) {
                                 // replace comma with dot
                                 if ($propertyAnnotation->decimal_separator == ',') {
                                     $value = str_replace(',', '.', $value);
                                 }
 
                                 $value = floatval($value);
-                                if ($propertyAnnotation->decimal_separator == "")
-                                {
+                                if ($propertyAnnotation->decimal_separator == "") {
                                     $value /= (pow(10, $propertyAnnotation->decimals));
                                 }
                                 break;
@@ -176,7 +179,7 @@ class PHPString
 
         return $object;
     }
-    
+
     /**
      * Convert object to string
      *
@@ -185,22 +188,18 @@ class PHPString
      */
     public function toString($object)
     {
-        if(get_class($object) != $this->class)
+        if (get_class($object) != $this->class)
             throw new Exception("The object is not an instance of $this->class");
 
         $string = "";
 
-        foreach($this->reflectionClass->getProperties() as $reflectionProperty)
-        {
+        foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
             /* @var $reflectionProperty \ReflectionProperty */
-            foreach($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation)
-            {
-                if ($propertyAnnotation instanceof Layout)
-                {
+            foreach ($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation) {
+                if ($propertyAnnotation instanceof Layout) {
                     $value = $reflectionProperty->getValue($object);
 
-                    if(is_null($value))
-                    {
+                    if (is_null($value)) {
                         $filler = ($propertyAnnotation instanceof Numeric) ? '0' : ' ';
                         $string .= str_pad('', $propertyAnnotation->size, $filler, STR_PAD_RIGHT);
                         break;
@@ -209,14 +208,13 @@ class PHPString
                     /*
                      * Date
                      */
-                    if ($propertyAnnotation instanceof Date)
-                    {
-                        if(!($value instanceof Carbon)) {
+                    if ($propertyAnnotation instanceof Date) {
+                        if (!($value instanceof Carbon)) {
                             throw new Exception("$value is not an instance of Carbon");
                         }
-                        
+
                         $valuestr = $value->format($propertyAnnotation->format);
-                        
+
                         // datas tem valores definidos, caso o valor formatado não coincida com o tamanho do campo há um erro na definição ou na data informada
                         if (strlen($valuestr) !== $propertyAnnotation->size) {
                             throw new \Exception("O valor '{$valuestr}' tem comprimento inválido para o campo {$reflectionProperty->getName()}");
@@ -237,17 +235,16 @@ class PHPString
                     /*
                      * Numeric
                      */
-                    if ($propertyAnnotation instanceof Numeric)
-                    {
+                    if ($propertyAnnotation instanceof Numeric) {
                         if (!is_numeric($value))
                             throw new Exception("$value is not numeric");
 
                         if (is_string($value))
                             $value *= 1.0;
 
-                        if($propertyAnnotation->decimals > 0)
+                        if ($propertyAnnotation->decimals > 0)
                             $value = number_format($value, $propertyAnnotation->decimals, $propertyAnnotation->decimal_separator, '');
-                        
+
                         // valores numericos não podem ser truncados
                         if (strlen($value) > $propertyAnnotation->size) {
                             throw new \Exception("O valor '{$value}' é muito longo para o campo {$reflectionProperty->getName()}");
@@ -271,12 +268,9 @@ class PHPString
     {
         $i = 0;
 
-        foreach($this->reflectionClass->getProperties() as $reflectionProperty)
-        {
-            foreach ($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation)
-            {
-                if ($propertyAnnotation instanceof Layout)
-                {
+        foreach ($this->reflectionClass->getProperties() as $reflectionProperty) {
+            foreach ($this->annotationReader->getPropertyAnnotations($reflectionProperty) as $propertyAnnotation) {
+                if ($propertyAnnotation instanceof Layout) {
                     $i += $propertyAnnotation->size;
                 }
             }
