@@ -15,9 +15,10 @@
     ],
     "require": {
         "php": ">=7.4",
-        "doctrine/common": "^2.6",
+        "doctrine/common": "^3",
         "nesbot/carbon": ">=1.21",
-        "symfony/console": "^5"
+        "symfony/console": "^5",
+        "doctrine/annotations": "^1"
     },
     "autoload": {
         "psr-4": {
