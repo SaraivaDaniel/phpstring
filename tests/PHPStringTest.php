@@ -3,12 +3,12 @@
 namespace SaraivaDaniel\PHPString;
 
 use Carbon\Carbon;
+use PHPUnit\Framework\TestCase;
 use SaraivaDaniel\PHPString\Test\Event;
 use SaraivaDaniel\PHPString\Test\NumericAnnotation;
 use SaraivaDaniel\PHPString\Test\DateAnnotation;
-use PHPUnit_Framework_TestCase;
 
-class PHPStringTest extends PHPUnit_Framework_TestCase
+class PHPStringTest extends TestCase
 {
     public function testDateAnnotationToObject()
     {
