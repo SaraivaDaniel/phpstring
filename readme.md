@@ -76,3 +76,7 @@ $string = $parser->toString($event);
 ### License
 
 The MIT License (MIT)
+
+## Requirements
+
+Version 4.0 requires PHP 8.5 or newer.

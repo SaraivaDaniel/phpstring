@@ -3,3 +3,4 @@ composer.lock
 nbproject
 .idea
 .phpunit.result.cache
+.phpunit.cache

@@ -4,7 +4,6 @@ namespace SaraivaDaniel\PHPString;
 
 use Carbon\Carbon;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Exception;
 use SaraivaDaniel\PHPString\Annotations\Date;
 use SaraivaDaniel\PHPString\Annotations\Layout;
@@ -20,6 +19,11 @@ class PHPString
     private $annotationReader;
 
     /**
+     * @var class-string
+     */
+    private $class;
+
+    /**
      * @var ReflectionClass
      */
     private $reflectionClass;
@@ -29,7 +33,7 @@ class PHPString
      * Applicable only to self::toObject()
      * @var bool
      */
-    private $textOnly;
+    private $textOnly = false;
 
     /**
      * Constructor.
@@ -41,9 +45,6 @@ class PHPString
 
         $this->class = $class;
 
-        AnnotationRegistry::registerFile(__DIR__ . '/Annotations/Date.php');
-        AnnotationRegistry::registerFile(__DIR__ . '/Annotations/Numeric.php');
-        AnnotationRegistry::registerFile(__DIR__ . '/Annotations/Text.php');
 
         $this->annotationReader = new AnnotationReader();
 
